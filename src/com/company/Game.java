@@ -8,16 +8,22 @@ public class Game extends JFrame {
     Location currentLocation;
     Panel gamePanel;
     String command;
-    JTextField commandInput;
+    CommandLine commandInput;
     JTextArea displayOutput;
-    Interpreter userInput;
     public Game(){
         setTitle("Alone");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        commandInput = new JTextField();
-        commandInput.addActionListener(userInput);
+        commandInput = new CommandLine();
+        commandInput.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                command = commandInput.getText();
+                commandInput.setText("");
+                displayOutput.append(command+"\n");
+            }
+        });
         displayOutput = new JTextArea();
 
         displayOutput.setEditable(false);
@@ -47,16 +53,6 @@ public class Game extends JFrame {
         displayOutput.append("\n" + currentLocation.getLocationDescription()+ "\n");
         displayOutput.repaint();
 
-    }
-
-    public class Interpreter implements ActionListener{
-        @Override
-        public void actionPerformed(ActionEvent actionEvent) {
-            command = commandInput.getText();
-
-            setBackground(Color.RED);
-            return;
-        }
     }
 
     public static void main(String[] args) {
