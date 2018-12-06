@@ -22,6 +22,7 @@ public class Game extends JFrame {
                 command = commandInput.getText();
                 commandInput.setText("");
                 displayOutput.append(command+"\n");
+                interpreter(command);
             }
         });
         displayOutput = new JTextArea();
@@ -54,7 +55,22 @@ public class Game extends JFrame {
         displayOutput.repaint();
 
     }
-
+    private void interpreter(String command){
+    if(verbParse(Movement[]))
+        return;
+    }
+    else if(verbParse(Look[])){
+        return;
+    }
+    else if(verbParse(Examine[])){
+        return;
+    }
+    else if(verbParse(Item[])){
+        return;
+    }
+    private boolean verbParse(String [] array){
+        
+    }
     public static void main(String[] args) {
 	new Game();
     }
