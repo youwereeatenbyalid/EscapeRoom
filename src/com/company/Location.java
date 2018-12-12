@@ -6,18 +6,20 @@ public class Location {
     private String locationTitle;
     private String locationDescription;
     private Vector exits;
+    private Vector items;
     private Vector triggers;
+    private boolean firstTime;
     public Location(){
-        locationTitle = new String();
-        locationDescription = new String();
         exits = new Vector();
+        items = new Vector();
         triggers = new Vector();
     }
 
     public Location(String title){
         locationTitle = title;
-        locationDescription = new String();
         exits = new Vector();
+        items = new Vector();
+        firstTime = true;
 
     }
 
@@ -25,6 +27,8 @@ public class Location {
         locationTitle = title;
         locationDescription = description;
         exits = new Vector();
+        items = new Vector();
+        firstTime = true;
 
     }
 
@@ -59,4 +63,21 @@ public class Location {
         exits.remove(exit);
     }
 
+    public Vector getItems(){
+        return (Vector) items.clone();
+    }
+    public void addItem(Item item){
+        items.add(item);
+    }
+    public void removeItem(Item item){
+        items.remove(item);
+    }
+
+    public boolean isFirstTime() {
+        return firstTime;
+    }
+
+    public void setFirstTime(boolean firstTime) {
+        this.firstTime = firstTime;
+    }
 }
