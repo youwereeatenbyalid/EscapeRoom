@@ -53,7 +53,9 @@ public class Exit {
     }
 
     public boolean exitMatch(String test){
-        if (test.contains(exitDirection.longName) || test.contains(" "+exitDirection.shortName+" ")|| test.endsWith(" "+exitDirection.shortName))
+        if (test.contains(exitDirection.longName)
+                || test.contains(" "+exitDirection.shortName+" ")
+                || test.endsWith(" "+exitDirection.shortName))
             return true;
         else
             return false;
