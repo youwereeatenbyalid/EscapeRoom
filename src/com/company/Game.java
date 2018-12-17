@@ -3,8 +3,6 @@ package com.company;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Iterator;
-import java.util.Vector;
 
 /*
 An attempt at creating a text adventure game engine using object oriented principles that could in theory be used
@@ -15,12 +13,13 @@ public class Game extends JFrame {
     Setting up important variables
      */
     //Player's current location
-    Location currentLocation;
+     Location currentLocation;
+
+     Location ending;
 
     //creates an empty location to store the players items.
     Location inventory;
 
-    //might use this for something at some point?
     Panel gamePanel;
 
     //the string used to hold the players text input
@@ -35,29 +34,20 @@ public class Game extends JFrame {
     //The main output for everything the player is told. Need to get it to scroll somehow.
     JTextArea displayOutput;
 
+    JScrollPane scrollOutput;
+
     /*enumerator for each of the actions that can be taken in the game. built with a String array to hold all
     Possible typed verbs (or as many as seem pertinent)
      */
-    enum Action{
-        NULL(null),
-        LOOK(new String[]{"LOOK","VIEW"}),
-        EXAMINE(new String[]{"EXAMINE", "INSPECT"}),
-        MOVE(new String[]{"MOVE","GO","WALK","HEAD"}),
-        ADD(new String[]{"PICK UP","TAKE","GRAB"}),
-        DROP(new String[]{"DROP","PLACE","EXAMINE"});
-        private String[] verbArray;
-        Action(String[] actionArray){
-            this.verbArray = actionArray;
-        }
-    }
-    public Game(){
+
+    public Game(String title, Location startinglocation, Location endLocation,Location inventory) {
         //Setting up the Jframe
-        setTitle("Alone");
+        setTitle(title);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         setBackground(Color.white);
         setForeground(Color.black);
-        setSize(1080,720);
+        setPreferredSize(new Dimension(1080,720));
 
         //set up the Command Line interface
         commandInput = new CommandLine();
@@ -71,13 +61,18 @@ public class Game extends JFrame {
                 //clears the text in the Command Line interface
                 commandInput.setText("");
                 //mirrors the players commands in the main output so they can remember it.
-                displayOutput.append(command+"\n");
+                outputAppend(command);
                 //runs the text interpreter on the command
                 interpreter(command);
+
+                displayOutput.setCaretPosition(displayOutput.getDocument().getLength());
+
+
             }
         });
         //initializing the game output
         displayOutput = new JTextArea();
+        scrollOutput = new JScrollPane(displayOutput);
 
         //set the text to wrap and to not be editable by the player.
         displayOutput.setEditable(false);
@@ -87,56 +82,25 @@ public class Game extends JFrame {
         //gamePanel = new Panel();
 
         //adds the display and command line interface into the JFrame
-        add(displayOutput, BorderLayout.CENTER);
+        add(scrollOutput, BorderLayout.CENTER);
         add(commandInput,BorderLayout.SOUTH);
 
-
         //create the inventory for the player
-        inventory = new Location("Inventory","Player Inventory");
-
+        this.inventory = inventory;
         /*
-        This is the actuall setup for the specifics of the game.
+        This is the actual setup for the specifics of the game.
         Everything below here can be replaced to create a custom game.
         Work on creating an easy input?
          */
 
-        //create the rooms
-        Location l1 = new Location("Room one","description for room one");
-        Location l2 = new Location("Room two","description for room two");
-        Location l3 = new Location("Room three","description for room three");
-        Location l4 = new Location("Room four","description for room four");
-        //add items to the rooms
-        l1.addItem(new Item(new String[]{"Test Item one","Item one"},"Item description one"));
-        l1.addItem(new Item(new String[]{"Test Object one","Object one"},"Object description one",false));
 
-        l2.addItem(new Item(new String[]{"Test Item two","Item two"},"Item description two"));
-        l2.addItem(new Item(new String[]{"Test Object two","Object two"},"Object description two",false));
-
-        l3.addItem(new Item(new String[]{"Test Item three","Item three"},"Item description three"));
-        l3.addItem(new Item(new String[]{"Test Object three","Object three"},"Object description three",false));
-
-        l4.addItem(new Item(new String[]{"Test Item four","Item four"},"Item description four"));
-        l4.addItem(new Item(new String[]{"Test Object four","Object four"},"Object description four",false));
-
-        //add exits linking the rooms together.
-        l1.addExit(new Exit(Exit.Direction.EAST, l2));
-        l1.addExit(new Exit(Exit.Direction.SOUTH,l4));
-
-        l2.addExit(new Exit(Exit.Direction.WEST,l1 ));
-        l2.addExit(new Exit(Exit.Direction.SOUTH,l3 ));
-
-        l3.addExit(new Exit(Exit.Direction.WEST,l4));
-        l3.addExit(new Exit(Exit.Direction.NORTH,l2));
-
-        l4.addExit(new Exit(Exit.Direction.EAST,l3));
-        l4.addExit(new Exit(Exit.Direction.NORTH,l1));
 
         //set the players current location
-        currentLocation = l1;
+        currentLocation = startinglocation;
+        ending = endLocation;
 
         //call showLocation to load the into text for the first room without the player having to move there.
-        showLocation();
-
+        interpreter("look");
         //pack the JFrame and let the player see it.
         pack();
         setVisible(true);
@@ -153,18 +117,12 @@ public class Game extends JFrame {
         //for each unique value in Action,
         for(Action e : Action.values()){
             //copies the verb array for the action
-            String[] actionParse = e.verbArray;
             //skips the null action prevent it from being assigned prematurely
-            if(actionParse != null) {
-                //for each value in the verb array
-                for (int i = 0; i < e.verbArray.length; i++) {
-                    //searches the players command for that particular verb
-                    if (command.contains(e.verbArray[i])) {
-                        //sets textFriendlyAction to that verb so it can be used later
-                        textFriendlyAction = e.verbArray[i].toLowerCase();
-                        //returns the action
-                        return e;
-                    }
+            if(e.getVerbArray() != null) {
+                String action = e.actionParse(command);
+                if(action != null){
+                    textFriendlyAction = action;
+                    return e;
                 }
             }
         }
@@ -176,8 +134,7 @@ public class Game extends JFrame {
     If it finds an item in either, it returns the item.
      */
     private Item itemParse(String command, Location location) {
-        //Creates an iterator out of the items vector
-        // which is used to progress through each item in the location being searched
+
         for (Object o : location.getItems()) {
             Item an_item = (Item) o;
             //checks if the the item and the command match
@@ -186,30 +143,17 @@ public class Game extends JFrame {
                 return an_item;
         }
         //if an item isn't found, it returns a null to indicate no item was found.
-        return null;
+        return location.getDefaultItem();
     }
 
-    /*
-    Show Location displays the room title and, if it's the player's the first time visiting, the room description.
-     */
-
-    private  void showLocation(){
-        //displays room title
-        displayOutput.append("\n" + currentLocation.getLocationTitle() +"\n");
-        //checks if it's the first time visiting.
-        if(currentLocation.isFirstTime()) {
-            //if it is, it will display the room description, then set firstTime to false.
-            displayOutput.append("\n" + currentLocation.getLocationDescription() + "\n");
-            currentLocation.setFirstTime(false);
-        }
-    }
 
     /*
     move is used to check if the player specified a valid direction to move in.
     If the player specified a valid location, it moves the player there.
     Otherwise, it tells the player that they couldn't move there.
      */
-    private void move(String command){
+    private boolean move(String command){
+        boolean moveSuccess = false;
         //Creates an iterator out of the exits vector
         // which is used to progress through each exit in the location being searched
         for (Object exit : currentLocation.getExits()) {
@@ -218,13 +162,14 @@ public class Game extends JFrame {
             if (an_exit.exitMatch(command)) {
                 //if they do, moves them through that exit to the new location, and shows the player that location.
                 currentLocation = an_exit.getLeadsTo();
-                showLocation();
-                return;
+                outputAppend(currentLocation.getLocationTitle());
+                moveSuccess = true;
+                break;
+
 
             }
         }
-            //otherwise, it tells the player they couldn't move.
-                displayOutput.append("Could not move that way!\n");
+            return moveSuccess;
     }
 
     /*
@@ -232,23 +177,23 @@ public class Game extends JFrame {
      */
     private void add(Item currentItem) {
         //Checks to see if the item can be moved and that the item is not already in the player's inventory.
-        if (currentItem.isMoveable() && !currentItem.isInInventory()) {
+        if (currentItem.isMoveable() && currentItem.getItemLocation() == currentLocation) {
             //if it isn't, it sets the item to show it now is in the player's inventory
-            currentItem.setInInventory(true);
             //adds the item to the player's inventory
-            inventory.addItem(currentItem);
+
             //and removes it from the room the player is in.
             currentLocation.removeItem(currentItem);
+            inventory.addItem(currentItem);
             //it then informs the player that the item has been added to their inventory.
-            displayOutput.append("Added " + currentItem + " to your inventory.\n");
+            outputAppend("Added " + currentItem + " to your inventory.");
 
-        } else if (currentItem.isInInventory()) {
+        } else if (currentItem.getItemLocation()==inventory) {
             //if the item is already in the players inventory, they'll be informed of that.
-            displayOutput.append("The " + currentItem + " is already in your inventory.\n");
+            outputAppend("The " + currentItem + " is already in your inventory.");
 
         } else if (!currentItem.isMoveable()) {
             //if the item cannot be be moved, it tells the player that.
-            displayOutput.append("The " + currentItem + " cannot be moved.\n");
+            outputAppend("The " + currentItem + " cannot be moved.");
 
         }
     }
@@ -258,32 +203,49 @@ public class Game extends JFrame {
      */
     private void drop(Item currentItem){
             //checks if the item in question is in their inventory.
-            if (currentItem.isInInventory())
+            if (currentItem.getItemLocation()==inventory)
             {
                 //if so the item is set to show that is no longer the case
-                currentItem.setInInventory(false);
                 //adds the item to the current location
-                currentLocation.addItem(currentItem);
+
                 //removes it from the players inventory
                 inventory.removeItem(currentItem);
+                currentLocation.addItem(currentItem);
                 //informs the player of their success
-                displayOutput.append("You " +textFriendlyAction +" the "+ currentItem + " on the floor.\n");
+                outputAppend("You " +textFriendlyAction +" the "+ currentItem + " on the floor.");
             }
             //if the item isn't in the inventory, snarkily informs the player of this
             else{
-                displayOutput.append("You can't " +textFriendlyAction + " what you haven't taken.");
+                outputAppend("You can't " +textFriendlyAction + " what you haven't taken.");
                 //if the item can't be moved, it gives them a heads up on that.
                 if(!currentItem.isMoveable()){
-                    displayOutput.append("Also, you can't take that anyway.\n");
+                    outputAppend("Also, you can't take that anyway.");
                 }
             }
     }
 
+    public void outputAppend(String appendString){
+        displayOutput.append("\n"+appendString+"\n");
+    }
+
+
+
+    private MasterTrigger inventoryCheck(Item currentObject, Action currentAction, String interpreterCommand){
+        MasterTrigger trigger;
+        for (Object o : inventory.getItems()) {
+            Item an_item = (Item) o;
+            trigger = currentObject.checkTriggers(currentAction,an_item,interpreterCommand);
+            if (trigger!= null)
+                return trigger;
+        }
+        return null;
+    }
     /*
     The text interpreter, AKA the actual game. Interprets the player's commands and responds to tell the story
     of the game.
      */
     private void interpreter(String command){
+        MasterTrigger currentTrigger = null;
         //set the players to command to upper case to avoid Case Sensitive Errors.
         String interpreterCommand = command.toUpperCase();
         //parses the command for any actions to take
@@ -291,56 +253,81 @@ public class Game extends JFrame {
         //parses the command for any items the player has in their inventory.
         Item currentItem = itemParse(interpreterCommand,inventory);
         //if nothing is found, it will parse the current location for those items.
-        if(currentItem == null){
-            currentItem = itemParse(interpreterCommand,currentLocation);
-        }
+        Item currentObject = itemParse(interpreterCommand,currentLocation);
+
+        MasterTrigger success = currentObject.checkTriggers(currentAction, currentItem,interpreterCommand);
+        if(success == null)
+            success = currentItem.checkTriggers(currentAction, currentObject,interpreterCommand);
+        if(success == null&& currentItem.isFramework())
+            success = inventoryCheck(currentObject,currentAction,interpreterCommand);
+
+
+        if(success != null)
+            currentAction = success.getTriggerAction();
         //sets up a series of cases for each possible action the player can take
         switch (currentAction){
 
             //Null: when no action is found, the interpreter informs the player of this.
             case NULL:
-                displayOutput.append("I'm sorry, I didn't understand.\n");
-                break;
+                outputAppend("I don't understand.");
+            break;
 
             //Move: calls the move method to move the player.
             case MOVE:
-                    move(interpreterCommand);
+                    if(move(interpreterCommand)&& currentLocation.isFirstTime())
+                            interpreter("look");
+                    else
+                        outputAppend("Could not move that way!");
+
                 break;
 
-            //Look: used to get the description of the current location.
-            case LOOK:
-
-                displayOutput.append("\n"+currentLocation.getLocationDescription()+"\n");
-                break;
-
-            //Examine: Used to get the description of the specified item.
+            //Examine: Used to get the description of the specified item. If no item is specified, it gets the description of the room.
             case EXAMINE:
-                if(currentItem != null)
-                    displayOutput.append("\n"+currentItem.getItemDescription()+"\n");
+                if(!currentItem.isFramework())
+                    outputAppend(currentItem.getItemDescription());
                 else
+                    outputAppend(currentObject.getItemDescription());
                     //if there is no item, it requests that the player specify an object to examine.
-                    displayOutput.append("Specify object to examine.\n");
                 break;
 
             //Add: adds an item to the player's inventory.
             case ADD:
-                if(currentItem != null)
+                if(!currentObject.isFramework())
+                    add(currentObject);
+                else if(!currentItem.isFramework())
                     add(currentItem);
                 else
-                    displayOutput.append("Please specify item to "+textFriendlyAction+".\n");
+                    outputAppend("Please specify item to "+textFriendlyAction+".");
                 break;
 
             //Drop: drops an item from the player's inventory.
             case DROP:
-                if(currentItem != null )
+                if(!currentItem.isFramework())
                     drop(currentItem);
+                else if(!currentObject.isFramework())
+                    drop(currentObject);
                 else{
-                    displayOutput.append("Please specify item to "+textFriendlyAction+".\n");
+                    outputAppend("Please specify item to "+textFriendlyAction+".");
                 }
             }
-    }
+            if(success != null){
+                if(success.getResult()!=null)
 
-    public static void main(String[] args) {
-	new Game();
+                    outputAppend(success.getResult());
+                    success.triggerResult();
+
+            }
+            if(currentLocation==ending){
+                commandInput.setEditable(false);
+                int playAgain= JOptionPane.showConfirmDialog(null,ending.getLocationDescription());
+                    //end here somehow?
+            }
+
+            //Check for Triggers on Item mentioned
+
+            //check for triggers on Object mentioned
+
     }
 }
+
+
