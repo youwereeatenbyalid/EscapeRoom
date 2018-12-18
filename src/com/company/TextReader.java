@@ -15,28 +15,25 @@ public class TextReader {
     public String description(String fileName) throws IOException {
 
         //fileReader used to create the buffered reader.
-        FileReader currentReader;
+        InputStreamReader currentReader;
 
         //String builder used to create the formatted string
         StringBuilder stringDescription = new StringBuilder();
 
         //String used to hold the current line.
         String line;
-
         //Grabs a file with the filename if it exists.
-        File currentFile = new File("descriptions",fileName);
+        InputStream in = getClass().getResourceAsStream("descriptions/"+fileName);
+        File currentFile = new File("./descriptions",fileName);
 
         //Try to create a reader if it does
-        try
-        {
-             currentReader = new FileReader(currentFile);
-        }
+
+             currentReader = new InputStreamReader(in);
+
         //display an error if it doesn't and quit.
-        catch (FileNotFoundException e)
-        {
-            JOptionPane.showMessageDialog(null,"Could not locate " + fileName);
-            return null;
-        }
+
+         //   JOptionPane.showMessageDialog(null,"Could not locate " + fileName);
+
 
 
         //creates a buffered reader from the reader.
