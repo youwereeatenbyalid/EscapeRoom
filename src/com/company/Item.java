@@ -13,10 +13,9 @@ For the purpose of clarity.
 public class Item {
     //A list of all names the player can use to refer to the item
     private String itemNames[];
-    //the description of the item in the room it's located in
+    //the description of the item.
     private String itemDescription;
-    //the description of the item if/when the player picks it up
-    private String inventoryDescription;
+
     //value to check if the item can be added/dropped from the inventory
     private boolean movable;
     //indicates this item acts as framework for a location
@@ -28,12 +27,14 @@ public class Item {
     //that can effect the item.
     private Vector triggers;
 
+    /*
+    Constructors
+     */
     //Constructor used to specify if the item can be moved.
     Item(String itemNames[], boolean movable){
         triggers = new Vector();
         this.itemNames = itemNames;
         this.itemDescription = "placeholder description";
-        this.inventoryDescription = itemDescription;
         this.movable = movable;
         itemLocation = null;
 
@@ -43,10 +44,12 @@ public class Item {
         triggers = new Vector();
         this.itemNames = itemNames;
         this.itemDescription = "placeholder description";
-        this.inventoryDescription = itemDescription;
         movable = true;
         itemLocation = null;
     }
+    /*
+    Methods
+     */
     //Sets the item to read as its first name for debugging clarity.
     @Override
     public String toString(){
@@ -85,11 +88,6 @@ public class Item {
     }
 
 
-    //return a clone of all triggers assigned to the item. Might be used at some point.
-    public Vector getTriggers(){
-        return (Vector) triggers.clone();
-    }
-
     //add a trigger to an item, used in setup.
     public void addTrigger(MasterTrigger trigger){
         triggers.add(trigger);
@@ -101,32 +99,25 @@ public class Item {
     }
 
     //checks to see if the item and verb correspond to the key and action for any triggers on this lock.
-
-
+    //if they do, it returns that trigger.
     public MasterTrigger checkTriggers(Action action, Item item, String interpreterCommand){
+        //for all triggers in this object's trigger list
         for (Object o : triggers){
             MasterTrigger a_trigger = (MasterTrigger) o;
+            //check to see if the item matches
                 if(a_trigger.itemMatch(item)) {
+                    //then check to see if the action matches.
                     if (a_trigger.actionMatch(action))
                         return a_trigger;
+                    //if it doesn't, check to see if it matches any custom commands.
                     else if(a_trigger.verbMatch(interpreterCommand))
                         return a_trigger;
                 }
         }
+        //return null if no valid triggers
         return null;
     }
 
-    //use to check triggers that don't have a key?
-
-    //return the description used when the item is in the player inventory.
-    public String getInventoryDescription() {
-        return inventoryDescription;
-    }
-
-    //set the description used when the item is in it's normal position.
-    public void setInventoryDescription(String inventoryDescription) {
-        this.inventoryDescription = inventoryDescription;
-    }
 
     //get the current location of the item.
     public Location getItemLocation() {
@@ -139,10 +130,14 @@ public class Item {
         this.itemLocation = itemLocation;
     }
 
+    /*Used to specify if the item in question is a "framework item"
+    Framework items are used by locations to hold any triggers that would activate when no item was specified.
+     */
     public boolean isFramework() {
         return framework;
     }
 
+    //Sets whether the item is a framework item.
     public void setFramework(boolean framework) {
         this.framework = framework;
     }

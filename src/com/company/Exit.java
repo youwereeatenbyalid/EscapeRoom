@@ -1,6 +1,13 @@
 package com.company;
 
+/*
+The Exit class is used to enable the player traversing from location to location in a logical manner.
+ */
 public class Exit {
+    /*
+    Direction is an enum that holds each possible direction
+    And the two names that can be used to refer to it.
+     */
     enum Direction{
         UNDEFINED("UNDEFINED",null),
         NORTH("NORTH","N"),
@@ -26,9 +33,16 @@ public class Exit {
 
 
     }
+
+    //The direction of the exit
     private Direction exitDirection;
+
+    //Where the exit leads.
     private Location leadsTo;
 
+    /*
+    Constructor
+     */
     public Exit(){
         exitDirection = Direction.UNDEFINED;
         leadsTo = null;
@@ -38,34 +52,39 @@ public class Exit {
         exitDirection = dir;
         this.leadsTo = leadsTo;
     }
+    /*
+    Methods
+     */
 
     @Override
     public String toString() {
         return exitDirection.toString();
     }
 
-    public Direction getExitDirection() {
-        return exitDirection;
-    }
+
+    //getter and setter for exit destination.
 
     public Location getLeadsTo() {
         return leadsTo;
     }
 
-    public boolean exitMatch(String test){
-        if (test.contains(exitDirection.longName)
-                || test.contains(" "+exitDirection.shortName+" ")
-                || test.endsWith(" "+exitDirection.shortName))
-            return true;
-        else
-            return false;
+    public void setLeadsTo(Location leadsTo) {
+        this.leadsTo = leadsTo;
+    }
+
+    //getter and setter for exit direction.
+    public Direction getExitDirection() {
+        return exitDirection;
     }
 
     public void setExitDirection(Direction exitDirection) {
         this.exitDirection = exitDirection;
     }
 
-    public void setLeadsTo(Location leadsTo) {
-        this.leadsTo = leadsTo;
+    //Checks if the string contains the long name or short name of the exit direction.
+    public boolean exitMatch(String test){
+        return (test.contains(exitDirection.longName)
+                || test.contains(" "+exitDirection.shortName+" ")
+                || test.endsWith(" "+exitDirection.shortName));
     }
 }
