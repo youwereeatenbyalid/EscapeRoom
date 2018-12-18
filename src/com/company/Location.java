@@ -1,62 +1,39 @@
 package com.company;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.*;
 /*
-Used to create the 'rooms' the player is in.
+Used to create the 'locations' the player is in.
 Holds a description,
-A list of all items in the room
-and a list of all the exits in the room.
+A list of all items in the location
+and a list of all the exits in the location.
  */
 public class Location {
-    //Name of the room.
+    //Name of the location.
     private String locationTitle;
-    //Room description.
-    private String locationDescription;
-    //description upon initial discovery, used once then done. May be redundant.
-    private String locationFirstTimeDescription;
+
     //List of all exits
     private Vector exits;
+
     //List of all items
     private Vector items;
 
-    private Item defaultItem;
-    //Check used to see if it's the players first time in the room.
+    //the framework item
+    private Item frameworkItem;
+    //Check used to see if it's the players first time in the location.
     private boolean firstTime;
 
     /*
-    Constructors
+    Constructor
      */
-    public Location(){
-        exits = new Vector();
-        items = new Vector();
-        defaultItem = new Item(new String[]{"default"},false);
-        defaultItem.setFramework(true);
-        addItem(defaultItem);
-
-    }
 
     public Location(String title){
         locationTitle = title;
         exits = new Vector();
         items = new Vector();
-        defaultItem = new Item(new String[]{title},false);
-        defaultItem.setFramework(true);
-        addItem(defaultItem);
-        firstTime = true;
-
-    }
-
-    public Location(String title, String description){
-        locationTitle = title;
-        locationDescription = description;
-        exits = new Vector();
-        items = new Vector();
-        defaultItem = new Item(new String[]{title},false);
-        defaultItem.setFramework(true);
-        addItem(defaultItem);
+        //creates a "framework" item with the locations title and adds it to Items Vector.
+        frameworkItem = new Item(new String[]{title},false);
+        frameworkItem.setFramework(true);
+        addItem(frameworkItem);
         firstTime = true;
 
     }
@@ -66,70 +43,86 @@ public class Location {
     Methods
      */
 
+    //toString method used for debugging and to get the title
     @Override
     public String toString() {
         return locationTitle;
     }
 
 
-    public String getLocationTitle() {
-        return locationTitle;
+    //Used to set the "location's" description.
+    //Actually assigns it to the framework item.
+
+    public void setLocationDescription(String description) {
+        Item framework = (Item) items.firstElement();
+        framework.setItemDescription(description);
     }
+    //Used to get the "location's" description.
+    //Actually retrieves the description of the framework item.
+
     public String getLocationDescription() {
         Item framework = (Item) items.firstElement();
         return framework.getItemDescription();
     }
 
-    public String getLocationFirstTimeDescription() { return locationFirstTimeDescription; }
 
+    //Unused title setter. Might be helpful in other projects.
     public void setLocationTitle(String title) {
         locationTitle = title;
     }
-    public void setLocationDescription(String description) {
-        Item framework = (Item) items.firstElement();
-        framework.setItemDescription(description);
-    }
-    public void setLocationFirstTimeDescription(String locationFirstTimeDescription) {
-        this.locationFirstTimeDescription = locationFirstTimeDescription;
-    }
 
-
+    //returns a clone of the exits Vector.
     public Vector getExits(){
         return (Vector) exits.clone();
     }
+
+    //returns a clone of the items Vector.
     public Vector getItems(){
         return (Vector) items.clone();
     }
+
+    //adds an item to the location.
+    //done by setting the items current location to this location
+    //then adds the item to the items vector.
     public void addItem(Item item){
         item.setItemLocation(this);
         items.add(item);
     }
 
-    public void addExit(Exit exit){
-        exits.add(exit);
-    }
-
-    public void removeExit(Exit exit){
-        exits.remove(exit);
-    }
-
+    //removes an item from this location in a similar fashion the addItem method.
     public void removeItem(Item item){
         item.setItemLocation(null);
         items.remove(item);
     }
+    //adds an exit to the exits Vector.
+    public void addExit(Exit exit){
+        exits.add(exit);
+    }
 
+    //removes a vector from the exits Vector.
+    public void removeExit(Exit exit){
+        exits.remove(exit);
+    }
+
+    //Allows a trigger to be added to the location
+    //by adding it to the framework item
     public void addTrigger(MasterTrigger trigger){
         Item framework = (Item) items.firstElement();
         framework.addTrigger(trigger);
     }
+
+    //removes the trigger in a similar way if that was ever needed.
     public void removeTrigger(MasterTrigger trigger){
         Item framework = (Item) items.firstElement();
         framework.removeTrigger(trigger);
     }
-    public Item getDefaultItem(){
-        return defaultItem;
+
+    //retrieves the framework item.
+    public Item getFrameworkItem(){
+        return frameworkItem;
     }
 
+    //getter and setter for the boolean that determines if it is the first time visiting this location.
     public boolean isFirstTime() {
         return firstTime;
     }
